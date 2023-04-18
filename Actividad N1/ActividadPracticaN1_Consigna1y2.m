@@ -38,7 +38,7 @@ tl=log(0.05)/lambda_2;
 % Tiempo de Integración:
 t_I=0.5e-10; % dos veces menos que la constante de tiempo tr
 % Tiempo de simulación
-t_S=0.0028;  % dos veces mas que la constante de tiempo tl
+t_S=0.1;  % dos veces mas que la constante de tiempo tl
 % Pasos de la simulación
 pasos=t_S/t_I;
 
