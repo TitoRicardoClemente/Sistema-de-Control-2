@@ -28,32 +28,44 @@ pz2=conj(pz1);                          % resultado el conjudado de "pz1"
 
 G=zpk([-10],[-2 -2],[5])
 Gd=c2d(G,Tm,'zoh')
+Gd_z=Gd.Z{1,1};
+Gd_p1=Gd.P{1,1}(1,1);
+Gd_p2=Gd.P{1,1}(2,1);
+Gd_K=Gd.K;
 
 %figure(1); hold on 
 %plot(pz1,'sq','LineWidth',3,'MarkerSize',8,'Color','red') 
 %plot(pz1','sq','LineWidth',3,'MarkerSize',8,'Color','blue')  
 %rlocus(Gd) 
 
-pc=Gd.Z{1,1};   % defino al polo del controlador a partir del cero de Gd
-fixx=180-atand(imag(pz2)/(0.6313-real(pz2))); % angulo del polo doble
-theta2=mod(2*fixx,180);                         % controlador (79º) 
+pc=0.6;   % defino al polo fijo en el origen
+
+fi1=atand(imag(pz2)/(pc-real(pz2)));
+theta1=atand(imag(pz2)/(real(pz2)-Gd_z));
+fi2=180-atand(imag(pz2)/(Gd_p1-real(pz2))); % angulo del polo doble
+theta2=mod(-theta1+2*fi2+fi1,180);                         % controlador (51º) 
 d=imag(pz2)/tand(theta2);                     % distancia del cero 
 cc=real(pz2)-d;                                % cero 
 
 %Controlador de ganancia unitaria (auxliar)
-Caux=zpk([cc],[pc],[1],Tm)
+Caux=zpk([cc],[pc],[1],Tm);
 %Aplico condición de módulo para el cálculo de Kd
-aux=Gd*Caux
+aux=Gd*Caux;
 %kd=abs(evalfr(aux,pz2)); %valuo la funcion de transferencia en polo deseado
 
-%figure(1); hold on
-%plot(pz1','sq','LineWidth',3,'MarkerSize',8,'Color','red')  
-%rlocus(Gd*Caux)
-kd=0.14;   % valor definido graficamente
+figure(1); hold on
+plot(pz1','sq','LineWidth',3,'MarkerSize',8,'Color','red')  
+rlocus(Gd*Caux)
+kd=rlocfind(aux,pz1);   % valor definido graficamente
+C_Ad=zpk([cc],[pc],[kd],Tm)
 
 F=feedback(Gd*Caux*kd,1); 
 F=zpk(F)
+pole(F)
+zero(F)
 figure(2);step(F);
-%figure(3);hold on; pzmap(F)
+figure(3);hold on; pzmap(F)
 t=0:Tm:20; % rampa tiempo 
-figure(3), lsim(F,t) % simula resp rampa 
+figure(4), lsim(F,t) % simula resp rampa 
+error_ss=1-dcgain(F)
+
